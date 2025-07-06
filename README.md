@@ -24,7 +24,7 @@ Installation
 ------------
 
 ```
-$ npm install [-g] stx
+$ npm install [-g] @rse/stx
 ```
 
 Usage

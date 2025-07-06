@@ -1,5 +1,6 @@
 {
-    "name":                             "stx",
+    "access":                           "public",
+    "name":                             "@rse/stx",
     "description":                      "Simple Task Execution",
     "keywords":                         [ "simple", "task", "execution", "make", "npm", "scripts" ],
     "homepage":                         "http://github.com/rse/stx",
