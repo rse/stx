@@ -88,7 +88,7 @@ build:pkg {sh} [!*-win32]
     targets="node24-linux-x64,node24-linux-arm64"
     targets="$targets,node24-win-x64,node24-win-arm64"
     targets="$targets,node24-macos-x64,node24-macos-arm64"
-    pkg --sea --public -c ../package.json --sea -t "$targets" stx.js
+    pkg --sea --public -c ../package.json -t "$targets" stx.js
     shx mkdir -p ../dst-stage3
     shx mv stx-linux-x64     ../dst-stage3/stx-lnx-x64     && \
     shx mv stx-linux-arm64   ../dst-stage3/stx-lnx-a64     && \
