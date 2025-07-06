@@ -121,16 +121,16 @@ The configuration structure and semantics are:
   execution is allowed to fail and for a file reference means
   the file is allowed to not exist.
 
-- Constraints are key/value and allow glob-style matches of the value (optionally negated by a `!` prefix)
-  for the keys `machine` (CPU architectures "arm", "arm64", "ia32",
-  "loong64", "mips", "mipsel", "ppc64", "riscv64", "s390x", and "x64" --
-  see Node.js `os.machine()` for details), `platform` (operating system
-  "aix", "darwin", "freebsd", "linux", "openbsd", "sunos", and "win32"
-  -- see Node.js `os.platform()` for details) and `hostname` (hostname
-  of system -- see Node.js `os.hostname()` for details). Constraints
-  act as filters for the configuration blocks: if a constraint does
-  not match the current platform, the configuration block is silently
-  ignored.
+- Constraints are key/value and allow glob-style matches of the value
+  (optionally negated by a `!` prefix) for the keys `machine` (CPU
+  architectures "arm", "arm64", "ia32", "loong64", "mips", "mipsel",
+  "ppc64", "riscv64", "s390x", and "x64" -- see Node.js `os.machine()`
+  for details), `platform` (operating system "aix", "darwin",
+  "freebsd", "linux", "openbsd", "sunos", and "win32" -- see Node.js
+  `os.platform()` for details) and `hostname` (hostname of system -- see
+  Node.js `os.hostname()` for details). Constraints act as filters for
+  the configuration blocks: if a constraint does not match the current
+  platform, the configuration block is silently ignored.
 
 ## LANGUAGES
 
