@@ -59,7 +59,7 @@
         "fast-levenshtein":             "3.0.0",
 
         "concurrently":                 "9.2.0",
-        "shx":                          "0.10.0",
+        "shx":                          "0.4.0",
         "shelljs":                      "0.10.0",
         "zx":                           "8.6.1",
         "dax-sh":                       "0.43.2"
