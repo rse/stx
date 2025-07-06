@@ -72,6 +72,6 @@
         "node":                         ">=22.0.0"
     },
     "scripts": {
-        "start":                        "node etc/stx-bootstrap.js -c etc/stx.conf -v"
+        "start":                        "node etc/stx-bootstrap.js -v -c etc/stx.conf"
     }
 }

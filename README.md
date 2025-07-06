@@ -23,8 +23,27 @@ for it.
 Installation
 ------------
 
+When you want to use `stx`(1) as a globally available command:
+
 ```
-$ npm install [-g] @rse/stx
+$ npm install -g @rse/stx
+```
+
+When you want to use `stx`(1) as a locally available build tool from within NPM's `package.json`
+by being able to just execute `npm start <task>` instead of `npx stx -v -c etc/stx.conf <task>`:
+
+```
+{
+    [...]
+    "devDependencies": {
+        [...]
+        "stx": "*"
+    },
+    "scripts": {
+        "start": "stx -v -c etc/stx.conf",
+        [...]
+    }
+}
 ```
 
 Usage
