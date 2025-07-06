@@ -63,47 +63,50 @@ lint
     markdownlint-cli2 --config etc/.markdownlint.yaml src/**/*.md
 
 #   static code analysis (linting) with file watching
-lint:watch
-    nodemon --exec "stx lint" --watch src --ext ts
+lint-watch
+    nodemon --exec "npm start lint" --watch src --ext ts
 
 #   code compilation/transpiling (building)
-build:watch
-    nodemon --exec "stx build" --watch src --ext ts
+build-watch
+    nodemon --exec "npm start build" --watch src --ext ts
 
 #   build entire project
-build: lint build:cmd build:man
+build : lint build-cmd build-man
 
 #   build command program
-build:cmd
+build-cmd
     vite --config etc/vite.mts build --mode production
 
 #   build manual page
-build:man
+build-man
     remark --quiet --use remark-man --output dst-stage2/stx.1 src/stx.md
 
+#   build packaging (self-contained executables) -- fallback
+build-pkg [hostname=!en4*]
+    echo "(packaging skipped)"
+
 #   build packaging (self-contained executables)
-build:pkg {sh} [!*-win32]
+build-pkg [hostname=en4*]
+    shx mkdir -p dst-stage2/@rse dst-stage3
     cd dst-stage2
-    rm -f stx-*
+    rm -f @rse/stx-*
     targets="node24-linux-x64,node24-linux-arm64"
     targets="$targets,node24-win-x64,node24-win-arm64"
     targets="$targets,node24-macos-x64,node24-macos-arm64"
     pkg --sea --public -c ../package.json -t "$targets" stx.js
-    shx mkdir -p ../dst-stage3
-    shx mv stx-linux-x64     ../dst-stage3/stx-lnx-x64     && \
-    shx mv stx-linux-arm64   ../dst-stage3/stx-lnx-a64     && \
-    shx mv stx-win-x64.exe   ../dst-stage3/stx-win-x64.exe && \
-    shx mv stx-win-arm64.exe ../dst-stage3/stx-win-a64.exe && \
-    shx mv stx-macos-x64     ../dst-stage3/stx-mac-x64     && \
-    shx mv stx-macos-arm64   ../dst-stage3/stx-mac-a64
-    stx -h
+    shx mv @rse/stx-linux-x64     ../dst-stage3/stx-lnx-x64     && \
+    shx mv @rse/stx-linux-arm64   ../dst-stage3/stx-lnx-a64     && \
+    shx mv @rse/stx-win-x64.exe   ../dst-stage3/stx-win-x64.exe && \
+    shx mv @rse/stx-win-arm64.exe ../dst-stage3/stx-win-a64.exe && \
+    shx mv @rse/stx-macos-x64     ../dst-stage3/stx-mac-x64     && \
+    shx mv @rse/stx-macos-arm64   ../dst-stage3/stx-mac-a64
 
 #   remove regularly built files
 clean
     shx rm -rf dst-stage1 dst-stage2 dst-stage3
 
 #   remove all built files
-clean:dist : clean
+clean-dist : clean
     shx rm -f package-lock.json
     shx rm -rf node_modules
 ```
@@ -114,14 +117,14 @@ Example execution calls are:
 $ stx
 Available tasks:
 build                     build entire project
-build:cmd                 build command program
-build:man                 build manual page
-build:pkg                 build packaging (self-contained executables)
-build:watch               code compilation/transpiling (building)
+build-cmd                 build command program
+build-man                 build manual page
+build-pkg                 build packaging (self-contained executables)
+build-watch               code compilation/transpiling (building)
 clean                     remove regularly built files
-clean:dist                remove all built files
+clean-dist                remove all built files
 lint                      static code analysis (linting)
-lint:watch                static code analysis (linting) with file watching
+lint-watch                static code analysis (linting) with file watching
 
 $ stx -v build
 $ sh [...]

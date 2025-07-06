@@ -7,6 +7,7 @@
 /*  external dependencies  */
 import path                        from "node:path"
 import fs                          from "node:fs"
+import os                          from "node:os"
 import CLIio                       from "cli-io"
 import yargs                       from "yargs"
 import stripIndent                 from "strip-indent"
@@ -249,9 +250,17 @@ type Task = {
             throw new Error(`invalid token: ${token.type} ("${token.text}")`)
     })
 
+    /*  retrieve system information  */
+    const sysInfo = (name: string) => {
+        let value = ""
+        if      (name === "machine")  value = os.machine()
+        else if (name === "platform") value = os.platform()
+        else if (name === "hostname") value = os.hostname()
+        return value
+    }
+
     /*  index tasks by target  */
     const targets = new Map<string, Task>()
-    const platform = `${process.arch}-${process.platform}`
     for (const task of tasks) {
         cli.log("debug", `task: targets: ${JSON.stringify(task.targets)}` +
             `, sources: ${JSON.stringify(task.sources)}` +
@@ -262,14 +271,14 @@ type Task = {
 
         /*  check constraints  */
         let skip = false
-        for (let constraint of task.constraints) {
-            let negated = false
-            const m = constraint.match(/^!(.+)$/)
-            if (m !== null) {
-                constraint = m[1]
-                negated    = true
-            }
-            const matches = minimatch(platform, constraint)
+        for (const constraint of task.constraints) {
+            const m = constraint.match(/^(.+?)=(!)?(.+)$/)
+            if (m === null)
+                throw new Error(`invalid constraint: "${constraint}"`)
+            const name    = m[1]
+            const negated = !!m[2]
+            const value   = m[3]
+            const matches = minimatch(sysInfo(name), value)
             if ((!matches && !negated) || (matches && negated)) {
                 skip = true
                 break
