@@ -139,6 +139,7 @@ type Task = {
     const nonl   = "[^\\r\\n]"
     const nowsnl = "[^ \\t\\r\\n]"
     const name   = `${seg}(?:${sep}${seg})*`
+    const any    = `(?:.|${nl})`
     lexer.rule("default", re`#+${ws}*(${nonl}*)`, (ctx, match) => {
         ctx.accept("comment", match[1])
     })
@@ -175,15 +176,18 @@ type Task = {
         ctx.state("script")
         ctx.ignore()
     })
-    lexer.rule("script", re`(?:${ws}${nonl}*${nl}|${nl})+`, (ctx, match) => {
+    const scrRegLn = `${ws}+${nonl}*${nl}`
+    const scrEmpLn = `${ws}*${nl}`
+    lexer.rule("script", re`${scrRegLn}+(?:(?:${scrRegLn}|${scrEmpLn})*${scrRegLn})?`, (ctx, match) => {
         ctx.accept("script")
         ctx.state("default")
     })
-    lexer.rule("script", re`.`, (ctx, match) => {
+    lexer.rule("script", re`${any}`, (ctx, match) => {
+        ctx.accept("script", null)
         ctx.state("default")
         ctx.repeat()
     })
-    lexer.rule("*", re`.`, (ctx, match) => {
+    lexer.rule("*", re`${any}`, (ctx, match) => {
         ctx.reject()
     })
 
@@ -208,6 +212,7 @@ type Task = {
     }
     let lastComment = ""
     lexer.tokens().forEach((token) => {
+        cli.log("debug", `parsing token: type: "${token.type}", value: "${token.value}"`)
         if (token.type === "comment")
             lastComment = token.value
         else if (token.type === "target") {
@@ -230,12 +235,14 @@ type Task = {
             task.language = token.value
         }
         else if (token.type === "script") {
-            const task = currentTask()
-            let script = stripIndent(token.value)
-            script = script.replaceAll(/\r\n/g, "\n")
-            script = script.replace(/^\n+/, "")
-            script = script.replace(/\n{2,}$/, "\n")
-            task.script = script
+            if (token.value !== null) {
+                const task = currentTask()
+                let script = stripIndent(token.value)
+                script = script.replaceAll(/\r\n/g, "\n")
+                script = script.replace(/^\n+/, "")
+                script = script.replace(/\n{2,}$/, "\n")
+                task.script = script
+            }
             n++
         }
         else if (token.type !== "EOF")
@@ -246,6 +253,13 @@ type Task = {
     const targets = new Map<string, Task>()
     const platform = `${process.arch}-${process.platform}`
     for (const task of tasks) {
+        cli.log("debug", `task: targets: ${JSON.stringify(task.targets)}` +
+            `, sources: ${JSON.stringify(task.sources)}` +
+            `, constraints: ${JSON.stringify(task.constraints)}` +
+            `, language: "${task.language}"` +
+            `, comment: "${task.comment}"` +
+            `, script: ${JSON.stringify(task.script)}`)
+
         /*  check constraints  */
         let skip = false
         for (let constraint of task.constraints) {
@@ -313,7 +327,12 @@ type Task = {
     }
     else {
         /*  execute single target  */
-        const executeTask = async (target: string, taskArgs: string[]): Promise<number> => {
+        const executeTask = async (target: string, taskArgs: string[], seen = new Set<string>()): Promise<number> => {
+            /*  stop potential recursion loops  */
+            if (seen.has(target))
+                return 0
+            seen.add(target)
+
             /*  determine task  */
             if (!targets.has(target))
                 throw new Error(`task target "${target}" not defined`)
@@ -344,7 +363,7 @@ type Task = {
                     if (targetDate > sourceDate) {
                         if (targets.has(source)) {
                             sourcesOlderFiles++
-                            const exitCode = await executeTask(source, []) /* RECURSION */
+                            const exitCode = await executeTask(source, [], seen) /* RECURSION */
                             if (exitCode !== 0 && !optional)
                                 return exitCode
                         }
@@ -355,7 +374,7 @@ type Task = {
                     }
                 }
                 else {
-                    const exitCode = await executeTask(source, []) /* RECURSION */
+                    const exitCode = await executeTask(source, [], seen) /* RECURSION */
                     if (exitCode !== 0 && !optional)
                         return exitCode
                 }
