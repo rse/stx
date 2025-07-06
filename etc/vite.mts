@@ -5,6 +5,7 @@
 */
 
 import * as Vite          from "vite"
+import commonjs           from "vite-plugin-commonjs"
 import { tscPlugin }      from "@wroud/vite-plugin-tsc"
 import nodeExternals      from "rollup-plugin-node-externals"
 
@@ -25,7 +26,8 @@ export default Vite.defineConfig(({ command, mode }) => ({
             deps:     false,
             optDeps:  false,
             peerDeps: false
-        })
+        }),
+        commonjs()
     ],
     resolve: {
         mainFields: [ "module", "jsnext:main", "jsnext" ],
@@ -35,7 +37,7 @@ export default Vite.defineConfig(({ command, mode }) => ({
         lib: {
             entry:    "dst-stage1/stx.js",
             formats:  [ "cjs" ],
-            name:     "Rundown",
+            name:     "stx",
             fileName: () => "stx.js"
         },
         target:                 "esnext",
@@ -47,7 +49,15 @@ export default Vite.defineConfig(({ command, mode }) => ({
         sourcemap:              (mode === "development"),
         minify:                 (mode === "production"),
         reportCompressedSize:   false,
+        commonjsOptions: {
+            include: [ /node_modules/ ]
+        },
         rollupOptions: {
+            external: [],
+            output: {
+                banner: "#!/usr/bin/env node",
+                inlineDynamicImports: true
+            },
             onwarn (warning, warn) {
                 if (warning.message.match(/Use of eval.*?is strongly discouraged/))
                     return

@@ -2,8 +2,8 @@
     "compilerOptions": {
 		"outDir":                  "../dst-stage1",
         "target":                  "esnext",
-        "module":                  "nodenext",
-        "moduleResolution":        "nodenext",
+        "module":                  "esnext",
+        "moduleResolution":        "bundler",
         "useDefineForClassFields": true,
         "composite":               false,
         "strict":                  true,

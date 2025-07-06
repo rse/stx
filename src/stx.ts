@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /*
 **  stx -- Simple Task Execution
 **  Copyright (c) 2025 Dr. Ralf S. Engelschall <rse@engelschall.com>
