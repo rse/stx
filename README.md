@@ -13,23 +13,23 @@ stx
 Abstract
 --------
 
-`stx`(1), *Simple Task Execution*, is a small command-line tool to run
+`stx`, *Simple Task Execution*, is a small command-line tool to run
 small scripts to perform certain tasks. It is intended to be used inside
 a software build process, especially in one based on *Node Package
-Manager (NPM)* scripts. `stx`(1) is inspired by and somewhat resembles
-good-old Unix `make`(1), but it is not intended as a direct replacement
+Manager (NPM)* scripts. `stx` is inspired by and somewhat resembles
+good-old Unix `make`, but it is not intended as a direct replacement
 for it.
 
 Installation
 ------------
 
-When you want to use `stx`(1) as a globally available command:
+When you want to use `stx` as a globally available command:
 
 ```
 $ npm install -g @rse/stx
 ```
 
-When you want to use `stx`(1) as a locally available build tool from within NPM's `package.json`
+When you want to use `stx` as a locally available build tool from within NPM's `package.json`
 by being able to just execute `npm start <task>` instead of `npx stx -v -c etc/stx.conf <task>`:
 
 ```
@@ -49,7 +49,7 @@ by being able to just execute `npm start <task>` instead of `npx stx -v -c etc/s
 Usage
 -----
 
-See the [Unix manual page](src/stx.md) for the documentation of the `stx`(1) command.
+See the [Unix manual page](src/stx.md) for the documentation of the `stx` command.
 See the [STX build procedure](etc/stx.conf) for an example of a STX configuration.
 
 License
