@@ -68,6 +68,6 @@
         "@liuli-util/vite-plugin-node": { "vite": ">=6.0.0" }
     },
     "scripts": {
-        "start":                        "node etc/stx-bootstrap.js -v -c etc/stx.conf"
+        "start":                        "node etc/stx-bootstrap.js -v -l warning -c etc/stx.conf"
     }
 }
