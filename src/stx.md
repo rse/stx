@@ -236,15 +236,16 @@ Example execution calls are:
 
 ```sh
 $ stx
-build - build entire project
-build:cmd - build command program
-build:man - build manual page
-build:pkg - build packaging (self-contained executables)
-build:watch - code compilation/transpiling (building)
-clean - remove regularly built files
-clean:dist - remove all built files
-lint - static code analysis (linting)
-lint:watch - static code analysis (linting) with file watching
+Available tasks:
+build                     build entire project
+build:cmd                 build command program
+build:man                 build manual page
+build:pkg                 build packaging (self-contained executables)
+build:watch               code compilation/transpiling (building)
+clean                     remove regularly built files
+clean:dist                remove all built files
+lint                      static code analysis (linting)
+lint:watch                static code analysis (linting) with file watching
 
 $ stx -v build
 $ sh [...]
