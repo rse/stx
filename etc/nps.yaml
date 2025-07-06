@@ -1,0 +1,36 @@
+##
+##  stx -- Simple Task Execution
+##  Copyright (c) 2025 Dr. Ralf S. Engelschall <rse@engelschall.com>
+##  Licensed under MIT <https://spdx.org/licenses/MIT>
+##
+
+scripts:
+    #   static code analysis (linting)
+    lint-watch:           nodemon --exec "npm start lint" --watch src --ext ts
+    lint: >               
+                          eslint --config etc/eslint.mjs src/**/*.ts &&
+                          markdownlint-cli2 --config etc/.markdownlint.yaml src/**/*.md
+
+    #   code compilation/transpiling (building)
+    build-watch:          nodemon --exec "npm start build" --watch src --ext ts
+    build:                npm start lint build:cmd build:man
+    build:cmd:            vite --config etc/vite.mts build --mode production
+    build:man:            remark --quiet --use remark-man --output dst-stage2/stx.1 src/stx.md
+    build:pkg: >
+                          cd dst-stage2 &&
+                          rm -f stx-* &&
+                          pkg --sea --public -c ../package.json --sea
+                          -t node24-linux-x64,node24-linux-arm64,node24-win-x64,node24-win-arm64,node24-macos-x64,node24-macos-arm64
+                          stx.js &&
+                          shx mkdir -p ../dst-stage3 &&
+                          shx mv stx-linux-x64     ../dst-stage3/stx-lnx-x64 &&
+                          shx mv stx-linux-arm64   ../dst-stage3/stx-lnx-a64 &&
+                          shx mv stx-win-x64.exe   ../dst-stage3/stx-win-x64.exe &&
+                          shx mv stx-win-arm64.exe ../dst-stage3/stx-win-a64.exe &&
+                          shx mv stx-macos-x64     ../dst-stage3/stx-mac-x64 &&
+                          shx mv stx-macos-arm64   ../dst-stage3/stx-mac-a64
+
+    #   cleanup
+    clean:                shx rm -rf dst-stage1 dst-stage2 dst-stage3
+    clean-dist:           npm start clean && shx rm -f package-lock.json && shx rm -rf node_modules
+
