@@ -123,57 +123,68 @@ type Task = {
     })
 
     /*  read configuration  */
-    cli.log("info", `reading task configuration file ${chalk.blue(args.c)}`)
+    cli.log("info", `reading task configuration file "${chalk.blue(args.c)}"`)
+    const conf = await fs.promises.readFile(args.c, "utf8").catch(() => {
+        cli.log("error", `failed to read task configuration file "${args.c}"`)
+        process.exit(1)
+    })
 
-    const conf = await fs.promises.readFile(args.c, "utf8")
     /*  define token-based parser  */
-    const lexer = new Tokenizr()
-    lexer.rule("default", /#+[ \t]*([^\r\n]*)/, (ctx, match) => {
+    const re = (strings: TemplateStringsArray, ...values: any[]) =>
+        new RegExp(String.raw(strings, ...values))
+    const lexer  = new Tokenizr()
+    const seg    = "[a-zA-Z][a-zA-Z0-9]*"
+    const sep    = "[_.:-]"
+    const nl     = "\\r?\\n"
+    const ws     = "[ \\t]"
+    const nonl   = "[^\\r\\n]"
+    const nowsnl = "[^ \\t\\r\\n]"
+    const name   = `${seg}(?:${sep}${seg})*`
+    lexer.rule("default", re`#+${ws}*(${nonl}*)`, (ctx, match) => {
         ctx.accept("comment", match[1])
     })
-    lexer.rule("default", /[^ \t\r\n]+/, (ctx, match) => {
+    lexer.rule("default", re`${nowsnl}+`, (ctx, match) => {
         ctx.state("target")
         ctx.repeat()
     })
-    lexer.rule("default", /[ \t]*\r?\n/, (ctx, match) => {
+    lexer.rule("default", re`${ws}*${nl}`, (ctx, match) => {
         ctx.ignore()
     })
-
-    lexer.rule("target,source", /"((?:\\"|[^\r\n])*)"/, (ctx, match) => {
+    lexer.rule("target,source", re`"((?:\\"|${nonl})*)"`, (ctx, match) => {
         ctx.accept(lexer.state(), match[1].replace(/\\"/g, "\""))
     })
-    lexer.rule("source", /@?[a-zA-Z_.](?:[a-zA-Z0-9_:.-]+[a-zA-Z0-9_]|[a-zA-Z0-9_]+)\??/, (ctx, match) => {
+    lexer.rule("source", re`@?${name}\??`, (ctx, match) => {
         ctx.accept(lexer.state())
     })
-    lexer.rule("target,source", /@?[a-zA-Z_.](?:[a-zA-Z0-9_:.-]+[a-zA-Z0-9_]|[a-zA-Z0-9_]+)/, (ctx, match) => {
+    lexer.rule("target,source", re`@?${name}`, (ctx, match) => {
         ctx.accept(lexer.state())
     })
-    lexer.rule("target,source", /\[(!?[^\]]+)\]/, (ctx, match) => {
+    lexer.rule("target,source", re`\[(!?${nonl}+?)\]`, (ctx, match) => {
         ctx.accept("constraint", match[1])
     })
-    lexer.rule("target,source", /\{([^}]+)\}/, (ctx, match) => {
+    lexer.rule("target,source", re`\{(${nonl}+?)\}`, (ctx, match) => {
         ctx.accept("language", match[1])
     })
-    lexer.rule("target", /[ \t]*:[ \t]*/, (ctx, match) => {
+    lexer.rule("target", re`${ws}*:${ws}*`, (ctx, match) => {
         ctx.ignore()
         ctx.state("source")
     })
-    lexer.rule("target,source", /[ \t]+/, (ctx, match) => {
+    lexer.rule("target,source", re`${ws}+`, (ctx, match) => {
         ctx.ignore()
     })
-    lexer.rule("target,source", /\r?\n/, (ctx, match) => {
+    lexer.rule("target,source", re`${nl}`, (ctx, match) => {
         ctx.state("script")
         ctx.ignore()
     })
-    lexer.rule("script", /(?:[ \t][^\r\n]*\r?\n|\r?\n)+/, (ctx, match) => {
+    lexer.rule("script", re`(?:${ws}${nonl}*${nl}|${nl})+`, (ctx, match) => {
         ctx.accept("script")
         ctx.state("default")
     })
-    lexer.rule("script", /./, (ctx, match) => {
+    lexer.rule("script", re`.`, (ctx, match) => {
         ctx.state("default")
         ctx.repeat()
     })
-    lexer.rule("*", /./, (ctx, match) => {
+    lexer.rule("*", re`.`, (ctx, match) => {
         ctx.reject()
     })
 
