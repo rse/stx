@@ -72,7 +72,6 @@
         "node":                         ">=22.0.0"
     },
     "scripts": {
-        "start":                        "nps -c etc/nps.yaml",
-        "test":                         "node dst-stage2/stx.js -c etc/stx.conf"
+        "start":                        "node etc/stx-bootstrap.js -c etc/stx.conf -v"
     }
 }
