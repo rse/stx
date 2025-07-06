@@ -1,5 +1,5 @@
 
-<img src="https://raw.githubusercontent.com/rse/stx/master/src/stx-logo.svg" width="300" align="right" alt="" style="z-index: 1000;"/>
+<img src="https://raw.githubusercontent.com/rse/stx/master/src/stx-logo.svg" width="300" align="right" alt=""/>
 
 stx
 ===
