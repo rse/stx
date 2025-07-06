@@ -137,19 +137,17 @@ The configuration structure and semantics are:
 `stx`(1) ships with direct support for the following two built-in programming languages:
 
 - `js`: *JavaScript*, by calling the `node`(1)
-  executable `stx`(1) is executed itself. The NPM packages
-  `concurrently`, `shelljs`, `zx`, and `dax-sh` are out-of-the-box
-  available in `$NODE_PATH`. The CLI programs `node`, `npm`, `npx`,
-  `shx`, and `zx` are out-of-the-box available in `$PATH`.
-  Use this language for maximum scripting flexibility and portability.
+  executable `stx`(1) is executed itself. The potential NPM peer
+  packages `concurrently`, `shelljs`, `zx`, and `dax-sh` can be
+  recommended in order to write platform-agnostic scripts. Use this
+  language for maximum scripting flexibility and portability.
 
 - `ts`: *TypeScript*, by calling the `node`(1)
-  executable `stx`(1) is executed itself, plus an intermediate
-  `tsx`(1) which ships as a dependency to `stx`(1). The NPM packages
-  `concurrently`, `shelljs`, `zx`, and `dax-sh` are out-of-the-box
-  available in `$NODE_PATH`. The CLI programs `node`, `npm`, `npx`,
-  `shx`, and `zx` are out-of-the-box available in `$PATH`.
-  Use this language for maximum scripting flexibility and portability.
+  executable `stx`(1) is executed itself, plus an intermediate `tsx`(1)
+  which ships as a dependency to `stx`(1). The potential NPM peer
+  packages `concurrently`, `shelljs`, `zx`, and `dax-sh` can be
+  recommended in order to write platform-agnostic scripts. Use this
+  language for maximum scripting flexibility and portability.
 
 `stx`(1) ships with direct support for the following typical shell languages:
 
@@ -180,7 +178,7 @@ Windows shell example is `powershell`.
 
 ## EXAMPLE
 
-An example configuration is:
+An example configuration is (this is actually the build procedure of `stx`(1) itself):
 
 ```txt
 #   static code analysis (linting)
@@ -229,7 +227,7 @@ clean
     shx rm -rf dst-stage1 dst-stage2 dst-stage3
 
 #   remove all built files
-clean:dist: clean
+clean:dist : clean
     shx rm -f package-lock.json
     shx rm -rf node_modules
 ```
