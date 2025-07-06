@@ -109,7 +109,7 @@ clean:dist : clean
 
 Example execution calls are:
 
-```sh
+```txt
 $ stx
 Available tasks:
 build                     build entire project
