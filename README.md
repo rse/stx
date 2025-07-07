@@ -146,7 +146,7 @@ clean-dist                remove all built files
 lint                      static code analysis (linting)
 lint-watch                static code analysis (linting) with file watching
 
-$ stx -v build
+$ stx -v2 build
 $ sh [...]
 | eslint --config etc/eslint.mjs src/**/*.ts && \
 | markdownlint-cli2 --config etc/.markdownlint.yaml src/**/*.md
