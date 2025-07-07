@@ -47,8 +47,8 @@ type Task = {
             "Usage: $0 " +
             "[-h|--help] " +
             "[-V|--version] " +
-            "[-l|--level <log-level>] " +
-            "[-v|--verbose] " +
+            "[-l|--log <logging-level>] " +
+            "[-v|--verbose <verbosity-level>] " +
             "[-c|--config <config-file>] " +
             "[-e|--env <key>=<val>] " +
             "[-p|--prefix <task-name-prefix>] " +
@@ -64,17 +64,17 @@ type Task = {
             describe: "show program version information"
         })
         .option("l", {
-            alias:    "log-level",
+            alias:    "log",
             type:     "string",
             nargs:    1,
             default:  "warning",
-            describe: "set logging verbosity level ('error', 'warning', 'info', 'debug')"
+            describe: "set logging level for showing execution information ('error', 'warning', 'info', 'debug')"
         })
         .option("v", {
             alias:    "verbose",
-            type:     "boolean",
-            default:  false,
-            describe: "show executed scripts"
+            type:     "number",
+            default:  0,
+            describe: "set verbosity level for showing script information (0-4)"
         })
         .option("c", {
             alias:    "config",
@@ -506,12 +506,18 @@ type Task = {
                 cli.log("debug", `| ${chalk.blue(line)}`)
 
             /*  optionally show script  */
-            if (args.v) {
-                const args = quotedCommand(taskArgs)
-                process.stderr.write(`${chalk.grey("$")} ${chalk.blue(cmd)} ${chalk.grey("[...]")} ${args !== "" ? chalk.blue(args) : ""}\n`)
+            if (args.v >= 4)
+                process.stderr.write(`${chalk.grey("_".repeat(78))}\n`)
+            if (args.v >= 3 && task.comment !== "")
+                process.stderr.write(`${chalk.grey.italic.inverse("  " + task.comment + "  ")}\n`)
+            if (args.v >= 2) {
+                const argv = quotedCommand(taskArgs)
+                process.stderr.write(`${chalk.grey("$")} ${chalk.blue(cmd)} ` +
+                    `${chalk.grey("[...]")} ${argv !== "" ? chalk.blue(argv) : ""}\n`)
+            }
+            if (args.v >= 1)
                 for (const line of script.split("\n").slice(0, -1))
                     process.stderr.write(`${chalk.grey("| ")}${chalk.blue(line)}\n`)
-            }
 
             /*  extend environment  */
             env.PATH = await extendPath(env.PATH)

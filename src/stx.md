@@ -6,8 +6,8 @@
 `stx`
 \[`-h`|`--help`\]
 \[`-V`|`--version`\]
-\[`-l`|`--level` *log-level*\]
-\[`-v`|`--verbose`\]
+\[`-l`|`--log` *log-level*\]
+\[`-v`|`--verbose` *verbosity-level*\]
 \[`-c`|`--config` *config-file*\]
 \[`-e`|`--env` *key*`=`*val*\]
 \[`-p`|`--prefix` *task-name-prefix*\]
@@ -32,9 +32,19 @@ The following command-line options and arguments exist:
 - \[`-V`|`--version`\]:
   Show program version information only.
 
-- \[`-l`|`--level *log-level*`\]:
-  Set logging verbosity level (`error`, `warning`, `info` or `debug`).
+- \[`-l`|`--log *logging-level*`\]:
+  Set logging level for tracing the execution processing:
+  `error`, `warning`, `info` or `debug`.
   The default is `warning`.
+
+- \[`-v`|`--verbose *verbosity-level*`\]:
+  Set verbosity level for showing script information:
+  `4` (separator, comment, command, and script),
+  `3` (comment, command, and script).
+  `2` (command and script),
+  `1` (script only), or
+  `0` (none).
+  The default is `0`.
 
 - \[`-v`|`--version`\]:
   Show executed scripts before execution.
