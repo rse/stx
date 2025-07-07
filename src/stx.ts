@@ -505,7 +505,7 @@ type Task = {
             for (const line of script.split("\n").slice(0, -1))
                 cli.log("debug", `| ${chalk.blue(line)}`)
 
-            /*  optionally show script  */
+            /*  optionally show script information  */
             if (args.v >= 4)
                 process.stderr.write(`${chalk.grey("_".repeat(78))}\n`)
             if (args.v >= 3 && task.comment !== "")
