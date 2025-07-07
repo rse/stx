@@ -14,12 +14,28 @@ stx
 Abstract
 --------
 
-`stx`, *Simple Task Execution*, is a small command-line tool to run
-small scripts to perform certain tasks. It is intended to be used inside
-a software build process, especially in one based on *Node Package
-Manager (NPM)* scripts. `stx` is inspired by and somewhat resembles
-good-old Unix `make`, but it is not intended as a direct replacement
-for it.
+`stx`, *Simple Task Execution*, is a small Node.js-based command-line
+tool to run small scripts to perform certain tasks. It is intended to
+be used inside a software build process, especially in one based on
+*Node Package Manager (NPM)* scripts. `stx` is inspired by and somewhat
+resembles good-old Unix `make`, but it is not intended as a direct
+replacement for it.
+
+Its main design criterias and features are:
+
+- Support for plain text configurations of just one or more tasks.
+- Support for task constraints based on machine architecture,
+  operating system plaform, or hostname of underlying device.
+- Support for task sources as dependencies and recursive
+  resolution of all transitive task sources for pre-execution.
+- Support for file and named based task targets and sources.
+- Support for arbitrary task script languages, especially
+  JavaScript/TypeScript based ones for maximum flexibility
+  and portability.
+- Support for a special task script language "shell" which
+  allows somewhat portable shell scripting.
+- Support for showing verbose script information during
+  execution for good traceability of the execution.
 
 Installation
 ------------
@@ -31,7 +47,7 @@ $ npm install -g @rse/stx
 ```
 
 When you want to use `stx` as a locally available build tool from within NPM's `package.json`
-by being able to just execute `npm start <task>` instead of `npx stx -v -c etc/stx.conf <task>`:
+by being able to just execute `npm start <task>` instead of `npx stx -v4 -c etc/stx.conf <task>`:
 
 ```
 {
@@ -41,7 +57,7 @@ by being able to just execute `npm start <task>` instead of `npx stx -v -c etc/s
         "stx": "*"
     },
     "scripts": {
-        "start": "stx -v -c etc/stx.conf",
+        "start": "stx -v4 -c etc/stx.conf",
         [...]
     }
 }
@@ -52,9 +68,10 @@ Usage
 
 See the [Unix manual page](src/stx.md) for the documentation of the `stx` command.
 
-## EXAMPLE
+Example
+-------
 
-See the [STX build procedure](etc/stx.conf) for an example of a STX configuration:
+See the [`stx`'s own build procedure](etc/stx.conf) for an example of a `stx` configuration:
 
 ```txt
 #   static code analysis (linting)
