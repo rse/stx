@@ -39,6 +39,8 @@ Its main design criterias and features are:
   allows somewhat portable shell scripting.
 - Support for showing verbose script information during
   execution for good traceability of the execution.
+- Support for fuzzy-matching top-level tasks for better
+  Developer Experience (DX).
 
 Installation
 ------------
