@@ -24,14 +24,17 @@ replacement for it.
 Its main design criterias and features are:
 
 - Support for plain text configurations of just one or more tasks.
-- Support for task constraints based on machine architecture,
-  operating system plaform, or hostname of underlying device.
+- Support for filtering tasks based on constraints, based on
+  machine architecture, operating system plaform, or hostname of
+  underlying device.
 - Support for task sources as dependencies and recursive
   resolution of all transitive task sources for pre-execution.
 - Support for file and named based task targets and sources.
+- Support for optional task sources to skip tasks with
+  still older sources or ignoring the failing of dependent scripts.
 - Support for arbitrary task script languages, especially
-  JavaScript/TypeScript based ones for maximum flexibility
-  and portability.
+  JavaScript/TypeScript in addition to regular shells,
+  for maximum flexibility.
 - Support for a special task script language "shell" which
   allows somewhat portable shell scripting.
 - Support for showing verbose script information during
