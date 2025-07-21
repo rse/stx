@@ -468,6 +468,7 @@ type Task = {
             else if (task.language === "cmd") {
                 /*  Microsoft Windows Batch (Windows only)  */
                 cmd = "cmd"
+                av  = [ "/c" ]
                 ext = "bat"
             }
             else if (task.language !== "" && task.language !== cmd) {
@@ -481,6 +482,7 @@ type Task = {
             let script = task.script
             if (cmd === "shell") {
                 cmd = process.platform === "win32" ? "cmd" : "sh"
+                av  = process.platform === "win32" ? [ "/c" ] : []
                 ext = cmd
                 if (process.platform === "win32") {
                     script = script.replaceAll(/\r?\n/g, "\r\n")
