@@ -522,7 +522,7 @@ type Task = {
                     process.stderr.write(`${chalk.grey("| ")}${chalk.blue(line)}\n`)
 
             /*  extend environment  */
-            env.PATH = await extendPath(env.PATH)
+            env.PATH = await extendPath(env.PATH ?? env.Path)
             env.STX_CMD  = quotedCommand([ cmd, ...av, file.path ])
             env.STX_ARGS = quotedCommand(taskArgs)
             for (const e of args.e) {
