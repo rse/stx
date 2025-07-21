@@ -560,6 +560,7 @@ type Task = {
             return 0
         }
 
+        /*  execute single target (through fuzzy matching)  */
         const executeTaskFuzzy = async (taskName: string, taskArgs: string[]): Promise<number> => {
             /*  optionally prefix the task name  */
             if (args.p !== "")
@@ -608,7 +609,8 @@ type Task = {
                     .map((name) => ({ name, segs: name.split(/[^a-zA-Z0-9]+/) }))
 
                 /*  for all given targets and their segments...  */
-                loop: for (const target of segsGivenAll) {
+                const taskNameExpanded = []
+                for (const target of segsGivenAll) {
                     const segsGiven = target.segs
 
                     /*  if the number of segments is equal...  */
@@ -617,26 +619,36 @@ type Task = {
                         let allSegmentsMatch = true
                         for (let i = 0; i < segsRequested.length; i++) {
                             /*  for all matching strategies...  */
-                            let anyStrategMatch = false
+                            let anyStrategyMatch = false
                             for (const matcher of strategies) {
                                 /*  if the segment matches...  */
                                 if (matcher.cb(segsRequested[i], segsGiven[i])) {
-                                    anyStrategMatch = true
+                                    anyStrategyMatch = true
                                     break
                                 }
                             }
-                            if (!anyStrategMatch) {
+                            if (!anyStrategyMatch) {
                                 allSegmentsMatch = false
                                 break
                             }
                         }
-                        if (allSegmentsMatch && taskName !== target.name) {
-                            /*  expand the task name  */
-                            cli.log("info", `expand task request "${chalk.red(taskName)}" to task <${chalk.blue(target.name)}>`)
-                            taskName = target.name
-                            break loop
-                        }
+                        if (allSegmentsMatch)
+                            /*  remember expanded task name  */
+                            taskNameExpanded.push(target.name)
                     }
+                }
+                if (taskNameExpanded.length === 0) {
+                    cli.log("error", `task request "${chalk.red(taskName)}" does not match any task`)
+                    return -1
+                }
+                else if (taskNameExpanded.length > 1) {
+                    const tasks = taskNameExpanded.sort().map((t) => `<${chalk.blue(t)}>`).join(", ")
+                    cli.log("error", `task request "${chalk.red(taskName)}" ambiguously matches more than one task: ${tasks}`)
+                    return -1
+                }
+                else if (taskNameExpanded[0] !== taskName) {
+                    cli.log("info", `task request "${chalk.red(taskName)}" expanded to task <${chalk.blue(taskNameExpanded[0])}>`)
+                    taskName = taskNameExpanded[0]
                 }
             }
 
