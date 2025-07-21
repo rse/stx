@@ -311,7 +311,7 @@ type Task = {
     tmp.setGracefulCleanup()
     const tempfile = (ext: string) => {
         return new Promise<{ path: string, fd: number }>((resolve, reject) => {
-            tmp.file({ mode: 0o600, prefix: "stx-", postfix: ext }, (err, path, fd) => {
+            tmp.file({ mode: 0o600, prefix: "stx-", postfix: `.${ext}` }, (err, path, fd) => {
                 if (err)
                     reject(err)
                 else
@@ -483,7 +483,7 @@ type Task = {
             if (cmd === "shell") {
                 cmd = process.platform === "win32" ? "cmd" : "sh"
                 av  = process.platform === "win32" ? [ "/c" ] : []
-                ext = cmd
+                ext = process.platform === "win32" ? "bat" : "sh"
                 if (process.platform === "win32") {
                     script = script.replaceAll(/\r?\n/g, "\r\n")
                     script = script.replaceAll(/\\\r\n/g, "^\r\n")
