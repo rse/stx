@@ -73,6 +73,7 @@ type Task = {
         .option("v", {
             alias:    "verbose",
             type:     "number",
+            nargs:    1,
             default:  0,
             describe: "set verbosity level for showing script information (0-4)"
         })
