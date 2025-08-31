@@ -184,7 +184,6 @@ type Task = {
         ctx.state("default")
     })
     lexer.rule("script", re`${any}`, (ctx, match) => {
-        ctx.accept("script", null)
         ctx.state("default")
         ctx.repeat()
     })
