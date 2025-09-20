@@ -181,7 +181,7 @@ type Task = {
     const scrRegLn = `${ws}+${nonl}*${nl}`
     const scrEmpLn = `${ws}*${nl}`
     lexer.rule("script", re`${scrRegLn}+(?:(?:${scrRegLn}|${scrEmpLn})*${scrRegLn})?`, (ctx, match) => {
-        ctx.accept("script")
+        ctx.accept("script", match[0])
         ctx.state("default")
     })
     lexer.rule("script", re`${any}`, (ctx, match) => {
@@ -215,35 +215,37 @@ type Task = {
     lexer.tokens().forEach((token) => {
         cli.log("debug", `parsing token: type: "${token.type}", value: "${token.value}"`)
         if (token.type === "comment")
-            lastComment = token.value
+            lastComment = token.value as string
         else if (token.type === "target") {
-            const task = currentTask()
+            let task = currentTask()
+            if (task.sources.length > 0 || task.constraints.length > 0 || task.language !== "") {
+                n++
+                task = currentTask()
+            }
             if (lastComment !== "")
                 task.comment = lastComment
             lastComment = ""
-            task.targets.push(token.value)
+            task.targets.push(token.value as string)
         }
         else if (token.type === "source") {
             const task = currentTask()
-            task.sources.push(token.value)
+            task.sources.push(token.value as string)
         }
         else if (token.type === "constraint") {
             const task = currentTask()
-            task.constraints.push(token.value)
+            task.constraints.push(token.value as string)
         }
         else if (token.type === "language") {
             const task = currentTask()
-            task.language = token.value
+            task.language = token.value as string
         }
         else if (token.type === "script") {
-            if (token.value !== null) {
-                const task = currentTask()
-                let script = stripIndent(token.value)
-                script = script.replaceAll(/\r\n/g, "\n")
-                script = script.replace(/^\n+/, "")
-                script = script.replace(/\n{2,}$/, "\n")
-                task.script = script
-            }
+            const task = currentTask()
+            let script = stripIndent(token.value as string)
+            script = script.replaceAll(/\r\n/g, "\n")
+            script = script.replace(/^\n+/, "")
+            script = script.replace(/\n{2,}$/, "\n")
+            task.script = script
             n++
         }
         else if (token.type !== "EOF")
