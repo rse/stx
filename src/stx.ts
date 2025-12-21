@@ -490,8 +490,8 @@ type Task = {
                 if (process.platform === "win32") {
                     script = script.replaceAll(/\r?\n/g, "\r\n")
                     script = script.replaceAll(/\\\r\n/g, "^\r\n")
-                    script = script.replaceAll(/$\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g, "%$1%")
-                    script = script.replaceAll(/$([a-zA-Z_][a-zA-Z0-9_]*)/g, "%$1%")
+                    script = script.replaceAll(/\$\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g, "%$1%")
+                    script = script.replaceAll(/\$([a-zA-Z_][a-zA-Z0-9_]*)/g, "%$1%")
                 }
                 else
                     script = script.replaceAll(/\r?\n/g, "\n")
