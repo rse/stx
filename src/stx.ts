@@ -327,9 +327,10 @@ type Task = {
         /*  list all available targets  */
         process.stdout.write("Available tasks:\n")
         for (const key of targets.keys().toArray().sort()) {
-            if (targets.get(key)!.comment !== "") {
+            const task = targets.get(key)!
+            if (task.comment !== "") {
                 const left  = key.padEnd(25, " ")
-                const right = targets.get(key)!.comment
+                const right = task.comment
                 process.stdout.write(`${chalk.blue(left)} ${chalk.grey(right)}\n`)
             }
             else
