@@ -26,7 +26,7 @@ import pkg                         from "../package.json" with { type: "json" }
 
 /*  define task data structure  */
 type Task = {
-    comment:     string,
+    comment:     string
     targets:     string[]
     sources:     string[]
     constraints: string[]
@@ -207,7 +207,7 @@ type Task = {
                 constraints: [],
                 language:    "",
                 script:      ""
-            } as Task
+            } satisfies Task
         }
         return tasks[n]
     }
@@ -657,8 +657,7 @@ type Task = {
             }
 
             /*  execute the requested target  */
-            const exitCode = await executeTask(taskName, taskArgs)
-            return exitCode
+            return await executeTask(taskName, taskArgs)
         }
 
         /*  execute requested tasks  */
