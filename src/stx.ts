@@ -194,13 +194,13 @@ type Task = {
 
     /*  parse configuration  */
     const tasks: Task[] = []
-    let n = 0
+    let taskIndex = 0
     lexer.input(conf)
     lexer.debug(false)
     lexer.state("default")
     const currentTask = () => {
-        if (tasks[n] === undefined) {
-            tasks[n] = {
+        if (tasks[taskIndex] === undefined) {
+            tasks[taskIndex] = {
                 comment:     "",
                 targets:     [],
                 sources:     [],
@@ -209,7 +209,7 @@ type Task = {
                 script:      ""
             } satisfies Task
         }
-        return tasks[n]
+        return tasks[taskIndex]
     }
     let lastComment = ""
     lexer.tokens().forEach((token) => {
@@ -219,7 +219,7 @@ type Task = {
         else if (token.type === "target") {
             let task = currentTask()
             if (task.sources.length > 0 || task.constraints.length > 0 || task.language !== "") {
-                n++
+                taskIndex++
                 task = currentTask()
             }
             if (lastComment !== "")
@@ -246,7 +246,7 @@ type Task = {
             script = script.replace(/^\n+/, "")
             script = script.replace(/\n{2,}$/, "\n")
             task.script = script
-            n++
+            taskIndex++
         }
         else if (token.type !== "EOF")
             throw new Error(`invalid token: ${token.type} ("${token.text}")`)
