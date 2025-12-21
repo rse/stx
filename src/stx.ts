@@ -599,12 +599,12 @@ type Task = {
 
                     /*  prefix match  */
                     { name: "prefix match", cb: (request: string, given: string) => {
-                        return given.indexOf(request) === 0
+                        return given.startsWith(request)
                     } },
 
                     /*  case-insensitive prefix match  */
                     { name: "case-insensitive prefix match", cb: (request: string, given: string) => {
-                        return given.toLowerCase().indexOf(request.toLowerCase()) === 0
+                        return given.toLowerCase().startsWith(request.toLowerCase())
                     } }
                 ]
 
