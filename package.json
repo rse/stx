@@ -52,7 +52,7 @@
         "dice-coefficient":             "2.1.1",
         "fast-levenshtein":             "3.0.0",
 
-        "@types/node":                  "25.0.2",
+        "@types/node":                  "25.0.3",
         "@types/luxon":                 "3.7.1",
         "@types/yargs":                 "17.0.35",
         "@types/fast-levenshtein":      "0.0.4",
