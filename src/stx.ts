@@ -551,11 +551,11 @@ type Task = {
                 }
                 else if (result.exitCode !== 0) {
                     cli.log("error", `task <${chalk.blue(target)}> terminated with non-zero exit code ${chalk.red(result.exitCode)}`)
-                    return result.exitCode!
+                    return result.exitCode ?? 1
                 }
                 else if (result.code !== "") {
-                    cli.log("error", `task <${chalk.blue(target)}> terminated with error code ${chalk.red(result.code)} (${result.originalMessage})`)
-                    return result.exitCode!
+                    cli.log("error", `task <${chalk.blue(target)}> terminated with Node error code ${chalk.red(result.code)} (${result.originalMessage})`)
+                    return -1
                 }
                 else {
                     cli.log("error", `task <${chalk.blue(target)}> terminated for unknown reasons`)
