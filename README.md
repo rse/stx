@@ -171,6 +171,6 @@ $ sh [...]
 License
 -------
 
-Copyright &copy; 2025 Dr. Ralf S. Engelschall (http://engelschall.com/)<br/>
+Copyright &copy; 2025-2026 Dr. Ralf S. Engelschall (http://engelschall.com/)<br/>
 Licensed under [MIT](https://spdx.org/licenses/MIT)
 

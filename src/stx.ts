@@ -1,6 +1,6 @@
 /*
 **  stx -- Simple Task Execution
-**  Copyright (c) 2025 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Copyright (c) 2025-2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
 **  Licensed under MIT <https://spdx.org/licenses/MIT>
 */
 
@@ -110,7 +110,7 @@ type Task = {
     /*  short-circuit version request  */
     if (args.V) {
         process.stderr.write(`stx ${pkg.version} <${pkg.homepage}>\n`)
-        process.stderr.write(`Copyright (c) 2025 ${pkg.author.name} <${pkg.author.url}>\n`)
+        process.stderr.write(`Copyright (c) 2025-2026 ${pkg.author.name} <${pkg.author.url}>\n`)
         process.stderr.write(`Licensed under ${pkg.license} <http://spdx.org/licenses/${pkg.license}.html>\n`)
         process.exit(0)
     }
