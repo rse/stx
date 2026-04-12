@@ -153,8 +153,7 @@ The configuration structure and semantics are:
   language for maximum scripting flexibility and portability.
 
 - `ts`: *TypeScript*, by calling the `node`(1)
-  executable `stx`(1) is executed itself, plus an intermediate `tsx`(1)
-  which ships as a dependency to `stx`(1). The potential NPM peer
+  executable `stx`(1) is executed itself. The potential NPM peer
   packages `concurrently`, `shelljs`, `zx`, and `dax-sh` can be
   recommended in order to write platform-agnostic scripts. Use this
   language for maximum scripting flexibility and portability.

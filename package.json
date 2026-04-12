@@ -47,7 +47,6 @@
         "tmp":                          "0.2.5",
         "execa":                        "9.6.1",
         "luxon":                        "3.7.2",
-        "tsx":                          "4.21.0",
         "dice-coefficient":             "2.1.1",
         "fast-levenshtein":             "3.0.0",
 

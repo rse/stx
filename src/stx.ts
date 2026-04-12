@@ -456,11 +456,9 @@ type Task = {
                 ext = "js"
             }
             else if (task.language === "ts") {
-                /*  TypeScript via Node/TSX (always available)  */
+                /*  TypeScript via Node  */
                 cmd = process.execPath
                 env.NODE_PATH = getNodePath()
-                const tsx = path.join(__dirname, "../node_modules/.bin/tsx")
-                av  = [ tsx ]
                 ext = "ts"
             }
             else if (task.language === "sh") {
