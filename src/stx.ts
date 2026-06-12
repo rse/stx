@@ -557,7 +557,7 @@ type Task = {
                     cli.log("error", `task <${chalk.blue(target)}> terminated with non-zero exit code ${chalk.red(result.exitCode)}`)
                     return result.exitCode ?? 1
                 }
-                else if (result.code !== "") {
+                else if (result.code !== undefined) {
                     cli.log("error", `task <${chalk.blue(target)}> terminated with Node error code ${chalk.red(result.code)} (${result.originalMessage})`)
                     return -1
                 }
