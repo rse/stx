@@ -131,7 +131,7 @@ type Task = {
     })
 
     /*  define token-based parser  */
-    const re = (strings: TemplateStringsArray, ...values: any[]) =>
+    const re = (strings: TemplateStringsArray, ...values: unknown[]) =>
         new RegExp(String.raw(strings, ...values))
     const lexer  = new Tokenizr()
     const seg    = "[a-zA-Z][a-zA-Z0-9]*"
