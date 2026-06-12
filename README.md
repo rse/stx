@@ -21,15 +21,15 @@ be used inside a software build process, especially in one based on
 resembles good-old Unix `make`, but it is not intended as a direct
 replacement for it.
 
-Its main design criterias and features are:
+Its main design criteria and features are:
 
 - Support for plain text configurations of just one or more tasks.
 - Support for filtering tasks based on constraints, based on
-  machine architecture, operating system plaform, or hostname of
+  machine architecture, operating system platform, or hostname of
   underlying device.
 - Support for task sources as dependencies and recursive
   resolution of all transitive task sources for pre-execution.
-- Support for file and named based task targets and sources.
+- Support for file- and name-based task targets and sources.
 - Support for optional task sources to skip tasks with
   still older sources or ignoring the failing of dependent scripts.
 - Support for arbitrary task script languages, especially
