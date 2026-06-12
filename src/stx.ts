@@ -487,10 +487,11 @@ type Task = {
                 (mostly for very simple scripts which just call commands)  */
             let script = task.script
             if (cmd === "shell") {
-                cmd = process.platform === "win32" ? "cmd" : "sh"
-                av  = process.platform === "win32" ? [ "/c" ] : []
-                ext = process.platform === "win32" ? "bat" : "sh"
-                if (process.platform === "win32") {
+                const isWin = process.platform === "win32"
+                cmd = isWin ? "cmd" : "sh"
+                av  = isWin ? [ "/c" ] : []
+                ext = isWin ? "bat" : "sh"
+                if (isWin) {
                     script = script.replaceAll(/\r?\n/g, "\r\n")
                     script = script.replaceAll(/\\\r\n/g, "^\r\n")
                     script = script.replaceAll(/\$\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g, "%$1%")
