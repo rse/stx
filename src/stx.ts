@@ -309,15 +309,20 @@ type Task = {
         }
     }
 
-    /*  ensure a graceful cleanup of temporary files  */
+    /*  ensure a graceful cleanup of temporary files
+        (also on signal-caused terminations, where Node does not emit the
+        "exit" event the "tmp" module hooks its garbage collection into)  */
     tmp.setGracefulCleanup()
+    for (const signal of [ "SIGINT", "SIGTERM", "SIGHUP" ] as const)
+        process.on(signal, () =>
+            process.exit(128 + os.constants.signals[signal]))
     const tempfile = (ext: string) => {
-        return new Promise<{ path: string, fd: number }>((resolve, reject) => {
-            tmp.file({ mode: 0o600, prefix: "stx-", postfix: `.${ext}` }, (err, path, fd) => {
+        return new Promise<{ path: string, remove: () => void }>((resolve, reject) => {
+            tmp.file({ mode: 0o600, prefix: "stx-", postfix: `.${ext}`, discardDescriptor: true }, (err, path, fd, remove) => {
                 if (err)
                     reject(err)
                 else
-                    resolve({ path, fd })
+                    resolve({ path, remove })
             })
         })
     }
@@ -541,7 +546,7 @@ type Task = {
                 stdio: [ "inherit", "inherit", "inherit" ],
                 reject: false,
                 env
-            })
+            }).finally(() => file.remove())
             if (result.failed) {
                 if (result.isTerminated) {
                     cli.log("error", `task <${chalk.blue(target)}> terminated with signal ${chalk.red(result.signal)}`)
