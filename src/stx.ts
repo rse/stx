@@ -344,6 +344,15 @@ type Task = {
         }
     }
     else {
+        /*  helper function: quote a command  */
+        const quotedCommand = (argv: string[]) => {
+            return argv.map((a) => {
+                if (a.match(/\s/))
+                    a = `"${a.replaceAll(/"/g, "\\\"")}"`
+                return a
+            }).join(" ")
+        }
+
         /*  execute single target  */
         const executeTask = async (target: string, taskArgs: string[], seen = new Set<string>()): Promise<number> => {
             /*  stop potential recursion loops  */
@@ -400,15 +409,6 @@ type Task = {
             if (task.sources.length > 0 && task.sources.length === sourcesOlderFiles) {
                 cli.log("info", `task <${chalk.blue(target)}> still up-to-date`)
                 return 0
-            }
-
-            /*  helper function: quote a command  */
-            const quotedCommand = (argv: string[]) => {
-                return argv.map((a) => {
-                    if (a.match(/\s/))
-                        a = `"${a.replaceAll(/"/g, "\\\"")}"`
-                    return a
-                }).join(" ")
             }
 
             /*  give information about our operation  */
