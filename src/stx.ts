@@ -262,6 +262,7 @@ type Task = {
 
     /*  index tasks by target  */
     const targets = new Map<string, Task>()
+    const tasksActive: Task[] = []
     for (const task of tasks) {
         cli.log("debug", `task: targets: ${JSON.stringify(task.targets)}` +
             `, sources: ${JSON.stringify(task.sources)}` +
@@ -287,6 +288,7 @@ type Task = {
         }
         if (skip)
             continue
+        tasksActive.push(task)
 
         /*  index targets  */
         for (const target of task.targets) {
@@ -297,7 +299,7 @@ type Task = {
     }
 
     /*  sanity check source tasks  */
-    for (const task of tasks) {
+    for (const task of tasksActive) {
         for (let source of task.sources) {
             const m = source.match(/^(.+?)\?$/)
             if (m !== null)
