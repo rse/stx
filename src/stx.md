@@ -165,11 +165,13 @@ The configuration structure and semantics are:
   Windows platforms. Additionally, for simple cross-plaform scripting,
   under Windows platforms the following replacements are automatically
   done on the script: line endings are converted to CR-LF,
-  line continuations `\\` are converted to `^` and variable references
-  like `$XXX` or `${XXX}` are converted to `%XXX%`. If you want
-  plain *Bourne-Shell* or *Batch Command*, use the languages
-  `sh` and `cmd` instead. Use this language for some scripting
-  portability.
+  line continuations `\\` are converted to `^`, variable references
+  like `$XXX` or `${XXX}` are converted to `%XXX%` and every command
+  is prefixed with `call`, as `cmd` otherwise permanently transfers
+  control to an invoked batch file and never returns to the rest of
+  the script. If you want plain *Bourne-Shell* or *Batch Command*,
+  use the languages `sh` and `cmd` instead. Use this language for
+  some scripting portability.
 
 - `sh`: *Bourne-Shell*, by calling the `sh`(1) executable.
   This is usually available under non-Windows platforms like
