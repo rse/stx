@@ -496,6 +496,11 @@ type Task = {
                     script = script.replaceAll(/\\\r\n/g, "^\r\n")
                     script = script.replaceAll(/\$\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g, "%$1%")
                     script = script.replaceAll(/\$([a-zA-Z_][a-zA-Z0-9_]*)/g, "%$1%")
+
+                    /*  prefix every command with "call", as "cmd" otherwise permanently
+                        transfers control to an invoked batch file (like the tool wrappers
+                        under "node_modules/.bin") and never returns to the rest of the script  */
+                    script = script.replaceAll(/((?<!\^\r\n)^|&&|\|\||[&|])([ \t]*)(?=\S)/gm, "$1$2call ")
                 }
                 else
                     script = script.replaceAll(/\r?\n/g, "\n")
