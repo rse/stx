@@ -33,6 +33,15 @@ export default Vite.defineConfig(({ command, mode }) => ({
         mainFields: [ "module", "jsnext:main", "jsnext" ],
         conditions: [ "node" ],
     },
+
+    /*  polyfill the ESM-only "import.meta" properties for the CommonJS output format, as the
+        Rolldown bundler of Vite 8 otherwise silently replaces "import.meta" with "{}". The
+        polyfills are injected via the output banner (see below), because bundled modules can
+        shadow the "require" identifier and hence cannot be referenced inline here.  */
+    define: {
+        "import.meta.url":     "__stxImportMetaUrl",
+        "import.meta.resolve": "__stxImportMetaResolve"
+    },
     build: {
         lib: {
             entry:    "dst-stage1/stx.js",
@@ -55,8 +64,12 @@ export default Vite.defineConfig(({ command, mode }) => ({
         rollupOptions: {
             external: [],
             output: {
-                banner: "#!/usr/bin/env node",
-                inlineDynamicImports: true
+                banner: [
+                    "#!/usr/bin/env node",
+                    "const __stxImportMetaUrl     = require(\"node:url\").pathToFileURL(__filename).href",
+                    "const __stxImportMetaResolve = require(\"node:module\").createRequire(__filename).resolve"
+                ].join("\n"),
+                codeSplitting: false
             },
             onwarn (warning, warn) {
                 if (warning.message.match(/Use of eval.*?is strongly discouraged/))
