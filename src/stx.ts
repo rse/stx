@@ -53,7 +53,7 @@ type Task = {
             "[-e|--env <key>=<val>] " +
             "[-p|--prefix <task-name-prefix>] " +
             "[-s|--single] " +
-            "[<task-name> [<task-option> [...]] " +
+            "[<task-name> [<task-option> [...]]] " +
             "[...]"
         )
         .help("h").alias("h", "help").default("h", false).describe("h", "show usage help")
