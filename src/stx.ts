@@ -254,11 +254,10 @@ type Task = {
 
     /*  retrieve system information  */
     const sysInfo = (name: string) => {
-        let value = ""
-        if      (name === "machine")  value = os.machine()
-        else if (name === "platform") value = os.platform()
-        else if (name === "hostname") value = os.hostname()
-        return value
+        if      (name === "machine")  return os.machine()
+        else if (name === "platform") return os.platform()
+        else if (name === "hostname") return os.hostname()
+        else throw new Error(`invalid constraint key: "${name}"`)
     }
 
     /*  index tasks by target  */
