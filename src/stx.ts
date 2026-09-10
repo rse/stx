@@ -448,7 +448,7 @@ type Task = {
             let cmd = "shell"
             let av  = [] as string[]
             let ext = ""
-            const env = { ...process.env } as { [ key: string ]: string }
+            const env: { [ key: string ]: string | undefined } = { ...process.env }
             if (task.language === "js") {
                 /*  JavaScript via Node (always available)  */
                 cmd = process.execPath
