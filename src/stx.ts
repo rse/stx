@@ -437,7 +437,7 @@ type Task = {
                     const stat = await fs.promises.stat(bindir).catch(() => null)
                     if (stat !== null && stat.isDirectory()) {
                         if (p !== "")
-                            p = `${process.platform === "win32" ? ";" : ":"}${p}`
+                            p = `${path.delimiter}${p}`
                         p = `${path.join(dir, ".bin")}${p}`
                     }
                 }
