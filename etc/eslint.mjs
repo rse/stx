@@ -4,26 +4,23 @@
 **  Licensed under MIT <https://spdx.org/licenses/MIT>
 */
 
-import pluginJs      from "@eslint/js"
-import pluginStd     from "neostandard"
-import pluginN       from "eslint-plugin-n"
-import pluginImport  from "eslint-plugin-import"
-import pluginPromise from "eslint-plugin-promise"
-import pluginTS      from "typescript-eslint"
-import globals       from "globals"
-import parserTS      from "@typescript-eslint/parser"
+import pluginJs       from "@eslint/js"
+import * as pluginStd from "neostandard"
+import pluginPromise  from "eslint-plugin-promise"
+import pluginTS       from "typescript-eslint"
+import globals        from "globals"
+import parserTS       from "@typescript-eslint/parser"
 
 export default [
     pluginJs.configs.recommended,
     ...pluginTS.configs.strict,
     ...pluginTS.configs.stylistic,
-    ...pluginStd({
+    ...pluginStd.neostandard({
+        ts:      true,
         ignores: pluginStd.resolveIgnoresFromGitignore()
     }),
     {
         plugins: {
-            "n":       pluginN,
-            "import":  pluginImport,
             "promise": pluginPromise
         },
         files: [ "src/**/*.ts" ],
@@ -55,7 +52,6 @@ export default [
             "@stylistic/brace-style":                             [ "error", "stroustrup", { allowSingleLine: true } ],
             "@stylistic/quotes":                                  [ "error", "double" ],
 
-            "@stylistic/no-multi-spaces":                         "off",
             "@stylistic/no-multi-spaces":                         "off",
             "@stylistic/no-multiple-empty-lines":                 "off",
             "@stylistic/key-spacing":                             "off",
