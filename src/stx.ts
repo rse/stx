@@ -429,13 +429,7 @@ type Task = {
 
             /*  helper function for finding NODE_PATH  */
             const getNodePath = () => {
-                let path = ""
-                for (const dir of module.paths) {
-                    if (path !== "")
-                        path += (process.platform === "win32" ? ";" : ":")
-                    path += dir
-                }
-                return path
+                return module.paths.join(path.delimiter)
             }
             const extendPath = async (p: string) => {
                 for (const dir of module.paths.reverse()) {
