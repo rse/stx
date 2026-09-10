@@ -432,7 +432,7 @@ type Task = {
                 return module.paths.join(path.delimiter)
             }
             const extendPath = async (p: string) => {
-                for (const dir of module.paths.reverse()) {
+                for (const dir of [ ...module.paths ].reverse()) {
                     const bindir = path.join(dir, ".bin")
                     const stat = await fs.promises.stat(bindir).catch(() => null)
                     if (stat !== null && stat.isDirectory()) {
