@@ -16,7 +16,6 @@ import chalk                       from "chalk"
 import { minimatch }               from "minimatch"
 import tmp                         from "tmp"
 import { execa }                   from "execa"
-import { DateTime }                from "luxon"
 import * as dice                   from "dice-coefficient"
 import levenshtein                 from "fast-levenshtein"
 
@@ -125,8 +124,8 @@ type Task = {
 
     /*  read configuration  */
     cli.log("info", `reading task configuration file "${chalk.blue(args.c)}"`)
-    const conf = await fs.promises.readFile(args.c, "utf8").catch(() => {
-        cli.log("error", `failed to read task configuration file "${args.c}"`)
+    const conf = await fs.promises.readFile(args.c, "utf8").catch((err) => {
+        cli.log("error", `failed to read task configuration file "${args.c}": ${err}`)
         process.exit(1)
     })
 
@@ -145,20 +144,20 @@ type Task = {
     lexer.rule("default", re`#+${ws}*(${nonl}*)`, (ctx, match) => {
         ctx.accept("comment", match[1])
     })
-    lexer.rule("default", re`${nowsnl}+`, (ctx, match) => {
+    lexer.rule("default", re`${nowsnl}+`, (ctx) => {
         ctx.state("target")
         ctx.repeat()
     })
-    lexer.rule("default", re`${ws}*${nl}`, (ctx, match) => {
+    lexer.rule("default", re`${ws}*${nl}`, (ctx) => {
         ctx.ignore()
     })
     lexer.rule("target,source", re`"((?:\\"|${nonl})*)"`, (ctx, match) => {
         ctx.accept(lexer.state(), match[1].replace(/\\"/g, "\""))
     })
-    lexer.rule("source", re`@?${name}\??`, (ctx, match) => {
+    lexer.rule("source", re`@?${name}\??`, (ctx) => {
         ctx.accept(lexer.state())
     })
-    lexer.rule("target,source", re`@?${name}`, (ctx, match) => {
+    lexer.rule("target,source", re`@?${name}`, (ctx) => {
         ctx.accept(lexer.state())
     })
     lexer.rule("target,source", re`\[(!?${nonl}+?)\]`, (ctx, match) => {
@@ -167,14 +166,14 @@ type Task = {
     lexer.rule("target,source", re`\{(${nonl}+?)\}`, (ctx, match) => {
         ctx.accept("language", match[1])
     })
-    lexer.rule("target", re`${ws}*:${ws}*`, (ctx, match) => {
+    lexer.rule("target", re`${ws}*:${ws}*`, (ctx) => {
         ctx.ignore()
         ctx.state("source")
     })
-    lexer.rule("target,source", re`${ws}+`, (ctx, match) => {
+    lexer.rule("target,source", re`${ws}+`, (ctx) => {
         ctx.ignore()
     })
-    lexer.rule("target,source", re`${nl}`, (ctx, match) => {
+    lexer.rule("target,source", re`${nl}`, (ctx) => {
         ctx.state("script")
         ctx.ignore()
     })
@@ -184,11 +183,11 @@ type Task = {
         ctx.accept("script", match[0])
         ctx.state("default")
     })
-    lexer.rule("script", re`${any}`, (ctx, match) => {
+    lexer.rule("script", re`${any}`, (ctx) => {
         ctx.state("default")
         ctx.repeat()
     })
-    lexer.rule("*", re`${any}`, (ctx, match) => {
+    lexer.rule("*", re`${any}`, (ctx) => {
         ctx.reject()
     })
 
@@ -198,6 +197,8 @@ type Task = {
     lexer.input(conf)
     lexer.debug(false)
     lexer.state("default")
+
+    /*  helper function: get or lazily create the current task  */
     const currentTask = () => {
         if (tasks[taskIndex] === undefined) {
             tasks[taskIndex] = {
@@ -272,20 +273,15 @@ type Task = {
             `, script: ${JSON.stringify(task.script)}`)
 
         /*  check constraints  */
-        let skip = false
-        for (const constraint of task.constraints) {
-            const m = constraint.match(/^(.+?)=(!)?(.+)$/)
+        const skip = task.constraints.some((constraint) => {
+            const m = constraint.match(/^(!)?(.+?)=(!)?(.+)$/)
             if (m === null)
                 throw new Error(`invalid constraint: "${constraint}"`)
-            const name    = m[1]
-            const negated = !!m[2]
-            const value   = m[3]
-            const matches = minimatch(sysInfo(name), value)
-            if ((!matches && !negated) || (matches && negated)) {
-                skip = true
-                break
-            }
-        }
+            const key     = m[2]
+            const negated = !!m[1] !== !!m[3]
+            const value   = m[4]
+            return minimatch(sysInfo(key), value) === negated
+        })
         if (skip)
             continue
         tasksActive.push(task)
@@ -300,13 +296,10 @@ type Task = {
 
     /*  sanity check source tasks  */
     for (const task of tasksActive) {
-        for (let source of task.sources) {
-            const m = source.match(/^(.+?)\?$/)
-            if (m !== null)
-                source = m[1]
-            if (source.match(/^@(.+)$/) === null)
-                if (!targets.has(source))
-                    throw new Error(`source task "${source}" not defined as a target`)
+        for (const source of task.sources) {
+            const ref = source.replace(/\?$/, "")
+            if (!ref.startsWith("@") && !targets.has(ref))
+                throw new Error(`source task "${ref}" not defined as a target`)
         }
     }
 
@@ -317,13 +310,15 @@ type Task = {
     for (const signal of [ "SIGINT", "SIGTERM", "SIGHUP" ] as const)
         process.on(signal, () =>
             process.exit(128 + os.constants.signals[signal]))
+
+    /*  helper function: create a temporary file  */
     const tempfile = (ext: string) => {
         return new Promise<{ path: string, remove: () => void }>((resolve, reject) => {
-            tmp.file({ mode: 0o600, prefix: "stx-", postfix: `.${ext}`, discardDescriptor: true }, (err, path, fd, remove) => {
+            tmp.file({ mode: 0o600, prefix: "stx-", postfix: `.${ext}`, discardDescriptor: true }, (err, name, _fd, remove) => {
                 if (err)
                     reject(err)
                 else
-                    resolve({ path, remove })
+                    resolve({ path: name, remove })
             })
         })
     }
@@ -345,12 +340,24 @@ type Task = {
     }
     else {
         /*  helper function: quote a command  */
-        const quotedCommand = (argv: string[]) => {
-            return argv.map((a) => {
-                if (a.match(/\s/))
-                    a = `"${a.replaceAll(/"/g, "\\\"")}"`
-                return a
-            }).join(" ")
+        const quotedCommand = (argv: string[]) =>
+            argv.map((a) => (a === "" || /[\s"]/.test(a)) ? `"${a.replaceAll("\"", "\\\"")}"` : a).join(" ")
+
+        /*  helper functions for determining NODE_PATH and extending PATH  */
+        const getNodePath = () => {
+            return module.paths.join(path.delimiter)
+        }
+        const extendPath = async (p: string) => {
+            for (const dir of module.paths.toReversed()) {
+                const bindir = path.join(dir, ".bin")
+                const stat = await fs.promises.stat(bindir).catch(() => null)
+                if (stat !== null && stat.isDirectory()) {
+                    if (p !== "")
+                        p = `${path.delimiter}${p}`
+                    p = `${bindir}${p}`
+                }
+            }
+            return p
         }
 
         /*  execute single target  */
@@ -361,49 +368,32 @@ type Task = {
             seen.add(target)
 
             /*  determine task  */
-            if (!targets.has(target))
+            const task = targets.get(target)
+            if (task === undefined)
                 throw new Error(`task target "${target}" not defined`)
-            const task = targets.get(target)!
 
             /*  check or execute sources  */
             let sourcesOlderFiles = 0
-            let targetDate = DateTime.now().toUnixInteger()
-            const m = target.match(/^@(.+)$/)
-            if (m !== null) {
-                const [ , file ] = m
-                const stat = await fs.promises.stat(file).catch(() => null)
+            let targetDate = 0
+            if (target.startsWith("@")) {
+                const stat = await fs.promises.stat(target.slice(1)).catch(() => null)
                 if (stat !== null)
-                    targetDate = DateTime.fromJSDate(stat.mtime).toUnixInteger()
+                    targetDate = stat.mtimeMs
             }
-            for (let source of task.sources) {
-                let optional = false
-                let m = source.match(/^(.+?)\?$/)
-                if (m !== null) {
-                    source   = m[1]
-                    optional = true
-                }
-                m = source.match(/^@(.+)$/)
-                if (m !== null) {
-                    const file = m[1]
-                    const stat = await fs.promises.stat(file).catch(() => null)
-                    const sourceDate = stat !== null ? DateTime.fromJSDate(stat.mtime).toUnixInteger() : 0
-                    if (targetDate > sourceDate) {
-                        if (targets.has(source)) {
-                            sourcesOlderFiles++
-                            const exitCode = await executeTask(source, [], seen) /* RECURSION */
-                            if (exitCode !== 0 && !optional)
-                                return exitCode
-                        }
-                        else if (stat !== null)
-                            sourcesOlderFiles++
-                        else if (stat === null && !optional)
-                            throw new Error(`mandatory source file "${chalk.red(source)}" not found`)
-                    }
-                }
-                else {
+            for (const spec of task.sources) {
+                const optional = spec.endsWith("?")
+                const source   = optional ? spec.slice(0, -1) : spec
+                if (targets.has(source)) {
                     const exitCode = await executeTask(source, [], seen) /* RECURSION */
                     if (exitCode !== 0 && !optional)
                         return exitCode
+                }
+                if (source.startsWith("@")) {
+                    const stat = await fs.promises.stat(source.slice(1)).catch(() => null)
+                    if (stat === null && !optional)
+                        throw new Error(`mandatory source file "${chalk.red(source)}" not found`)
+                    if (stat !== null && targetDate > stat.mtimeMs)
+                        sourcesOlderFiles++
                 }
             }
             if (task.sources.length > 0 && task.sources.length === sourcesOlderFiles) {
@@ -427,39 +417,16 @@ type Task = {
             if (task.script === "")
                 return 0
 
-            /*  helper function for finding NODE_PATH  */
-            const getNodePath = () => {
-                return module.paths.join(path.delimiter)
-            }
-            const extendPath = async (p: string) => {
-                for (const dir of [ ...module.paths ].reverse()) {
-                    const bindir = path.join(dir, ".bin")
-                    const stat = await fs.promises.stat(bindir).catch(() => null)
-                    if (stat !== null && stat.isDirectory()) {
-                        if (p !== "")
-                            p = `${path.delimiter}${p}`
-                        p = `${path.join(dir, ".bin")}${p}`
-                    }
-                }
-                return p
-            }
-
             /*  determine language and script  */
             let cmd = "shell"
             let av  = [] as string[]
             let ext = ""
-            const env: { [ key: string ]: string | undefined } = { ...process.env }
-            if (task.language === "js") {
-                /*  JavaScript via Node (always available)  */
+            const env = { ...process.env }
+            if (task.language === "js" || task.language === "ts") {
+                /*  JavaScript/TypeScript via Node (always available)  */
                 cmd = process.execPath
                 env.NODE_PATH = getNodePath()
-                ext = "js"
-            }
-            else if (task.language === "ts") {
-                /*  TypeScript via Node  */
-                cmd = process.execPath
-                env.NODE_PATH = getNodePath()
-                ext = "ts"
+                ext = task.language
             }
             else if (task.language === "sh") {
                 /*  Bourne-Shell (Unix only)  */
@@ -472,7 +439,7 @@ type Task = {
                 av  = [ "/c" ]
                 ext = "bat"
             }
-            else if (task.language !== "" && task.language !== cmd) {
+            else if (task.language !== "" && task.language !== "shell") {
                 /*  custom language  */
                 cmd = task.language
                 ext = task.language
@@ -497,8 +464,6 @@ type Task = {
                         under "node_modules/.bin") and never returns to the rest of the script  */
                     script = script.replaceAll(/((?<!\^\r\n)^|&&|\|\||[&|])([ \t]*)(?=\S)/gm, "$1$2call ")
                 }
-                else
-                    script = script.replaceAll(/\r?\n/g, "\n")
             }
 
             /*  create script file  */
@@ -506,34 +471,36 @@ type Task = {
             await fs.promises.writeFile(file.path, script, "utf8")
             const quoted = quotedCommand([ cmd, ...av, file.path ])
             if (taskArgs.length > 0) {
-                const args = quotedCommand(taskArgs)
-                cli.log("info", `command: ${chalk.blue(quoted)}, args: ${chalk.blue(args)}`)
+                const argsQuoted = quotedCommand(taskArgs)
+                cli.log("info", `command: ${chalk.blue(quoted)}, args: ${chalk.blue(argsQuoted)}`)
             }
             else
                 cli.log("info", `command: ${chalk.blue(quoted)}`)
-            for (const line of script.split("\n").slice(0, -1))
+            const lines = script.split(/\r?\n/).slice(0, -1)
+            for (const line of lines)
                 cli.log("debug", `| ${chalk.blue(line)}`)
 
             /*  optionally show script information  */
             if (args.v >= 4)
                 process.stderr.write(`${chalk.grey("_".repeat(78))}\n`)
             if (args.v >= 3 && task.comment !== "")
-                process.stderr.write(`${chalk.grey.italic.inverse("  " + task.comment + "  ")}\n`)
+                process.stderr.write(`${chalk.grey.italic.inverse(`  ${task.comment}  `)}\n`)
             if (args.v >= 2) {
                 const argv = quotedCommand(taskArgs)
                 process.stderr.write(`${chalk.grey("$")} ${chalk.blue(cmd)} ` +
                     `${chalk.grey("[...]")} ${argv !== "" ? chalk.blue(argv) : ""}\n`)
             }
             if (args.v >= 1)
-                for (const line of script.split("\n").slice(0, -1))
+                for (const line of lines)
                     process.stderr.write(`${chalk.grey("| ")}${chalk.blue(line)}\n`)
 
             /*  extend environment  */
-            env.PATH = await extendPath(env.PATH ?? env.Path ?? "")
-            env.STX_CMD  = quotedCommand([ cmd, ...av, file.path ])
+            const pathKey = Object.keys(env).find((key) => key.toUpperCase() === "PATH") ?? "PATH"
+            env[pathKey] = await extendPath(env[pathKey] ?? "")
+            env.STX_CMD  = quoted
             env.STX_ARGS = quotedCommand(taskArgs)
             for (const e of args.e) {
-                const m = e.match(/^(.+?)=(.+)$/)
+                const m = e.match(/^(.+?)=(.*)$/)
                 if (m !== null) {
                     const [ , key, val ] = m
                     env[key] = val
@@ -544,7 +511,7 @@ type Task = {
 
             /*  execute script file  */
             const result = await execa(cmd, [ ...av, file.path, ...taskArgs ], {
-                stdio: [ "inherit", "inherit", "inherit" ],
+                stdio:  "inherit",
                 reject: false,
                 env
             }).finally(() => file.remove())
@@ -553,9 +520,9 @@ type Task = {
                     cli.log("error", `task <${chalk.blue(target)}> terminated with signal ${chalk.red(result.signal)}`)
                     return -1
                 }
-                else if (result.exitCode !== 0) {
+                else if (result.exitCode !== undefined && result.exitCode !== 0) {
                     cli.log("error", `task <${chalk.blue(target)}> terminated with non-zero exit code ${chalk.red(result.exitCode)}`)
-                    return result.exitCode ?? 1
+                    return result.exitCode
                 }
                 else if (result.code !== undefined) {
                     cli.log("error", `task <${chalk.blue(target)}> terminated with Node error code ${chalk.red(result.code)} (${result.originalMessage})`)
@@ -617,42 +584,22 @@ type Task = {
                 const segsGivenAll  = targets.keys().toArray().sort()
                     .map((name) => ({ name, segs: name.split(/[^a-zA-Z0-9]+/) }))
 
-                /*  for all given targets and their segments...  */
-                const taskNameExpanded = []
-                for (const target of segsGivenAll) {
-                    const segsGiven = target.segs
-
-                    /*  if the number of segments is equal...  */
-                    if (segsRequested.length === segsGiven.length) {
-                        /*  for all segments...  */
-                        let allSegmentsMatch = true
-                        for (let i = 0; i < segsRequested.length; i++) {
-                            /*  for all matching strategies...  */
-                            let anyStrategyMatch = false
-                            for (const matcher of strategies) {
-                                /*  if the segment matches...  */
-                                if (matcher.cb(segsRequested[i], segsGiven[i])) {
-                                    anyStrategyMatch = true
-                                    break
-                                }
-                            }
-                            if (!anyStrategyMatch) {
-                                allSegmentsMatch = false
-                                break
-                            }
-                        }
-                        if (allSegmentsMatch)
-                            /*  remember expanded task name  */
-                            taskNameExpanded.push(target.name)
-                    }
+                /*  find matching targets, preferring stricter strategies over looser ones  */
+                let taskNameExpanded: string[] = []
+                for (let n = 1; n <= strategies.length && taskNameExpanded.length === 0; n++) {
+                    const matchers = strategies.slice(0, n)
+                    taskNameExpanded = segsGivenAll
+                        .filter(({ segs }) => segs.length === segsRequested.length
+                            && segs.every((seg, i) => matchers.some((s) => s.cb(segsRequested[i], seg))))
+                        .map(({ name }) => name)
                 }
                 if (taskNameExpanded.length === 0) {
                     cli.log("error", `task request "${chalk.red(taskName)}" does not match any task`)
                     return -1
                 }
                 else if (taskNameExpanded.length > 1) {
-                    const tasks = taskNameExpanded.sort().map((t) => `<${chalk.blue(t)}>`).join(", ")
-                    cli.log("error", `task request "${chalk.red(taskName)}" ambiguously matches more than one task: ${tasks}`)
+                    const list = taskNameExpanded.map((t) => `<${chalk.blue(t)}>`).join(", ")
+                    cli.log("error", `task request "${chalk.red(taskName)}" ambiguously matches more than one task: ${list}`)
                     return -1
                 }
                 else if (taskNameExpanded[0] !== taskName) {
@@ -678,14 +625,11 @@ type Task = {
             let argvTask = [] as string[]
             const argvAll = args._.map((a) => String(a))
             const flush = async () => {
-                let exitCode = 0
-                if (argvTask.length > 0) {
-                    const taskName = argvTask[0]
-                    const taskArgs = argvTask.slice(1)
-                    exitCode = await executeTaskFuzzy(taskName, taskArgs)
-                    argvTask = [] as string[]
-                }
-                return exitCode
+                if (argvTask.length === 0)
+                    return 0
+                const [ taskName, ...taskArgs ] = argvTask
+                argvTask = []
+                return await executeTaskFuzzy(taskName, taskArgs)
             }
             for (let i = 0; i < argvAll.length; i++) {
                 if (i > 0 && argvAll[i].match(/^[-+].+/) === null) {
